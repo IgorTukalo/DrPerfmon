@@ -64,6 +64,7 @@ namespace DrPerfmon.ViewModel
 
         public MainWindowVM()
         {
+            MessageBox.Show("qq");
             db = new DrPerfmonContext();
             _dispatcher = Dispatcher.CurrentDispatcher;
             TimerStart = new ActionCommand(TimerStartCommand) { IsExecutable = true };
