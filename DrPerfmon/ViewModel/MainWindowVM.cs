@@ -18,12 +18,25 @@ namespace DrPerfmon.ViewModel
 {
     public class MainWindowVM : INotifyPropertyChanged, IDisposable
     {
-        public int SampleEvery = 2 * 1000; //Снимать показания через каждые (секунд)
-        public int Duration = 1200 * 1000; //Продолжительность (секунд)
+        /// <summary>
+        /// Снимать показания через каждые (секунд)
+        /// </summary>
+        public int SampleEvery = 2 * 1000;
 
+        /// <summary>
+        /// Продолжительность (секунд)
+        /// </summary>
+        public int Duration = 1200 * 1000;
+
+        /// <summary>
+        /// Асинхронный делегат обновления графиков производительности
+        /// </summary>
         public delegate void DisplayHandler();
 
         private SeriesCollection seriesCollection;
+        /// <summary>
+        /// Коллекция графиков
+        /// </summary>
         public SeriesCollection SeriesCollection
         {
             get { return seriesCollection; }
@@ -34,18 +47,44 @@ namespace DrPerfmon.ViewModel
             }
         }
 
+        /// <summary>
+        /// Подписи к графикам
+        /// </summary>
         public string[] Labels { get; set; }
-        public Func<double, string> YFormatter { get; set; }
+
+        /// <summary>
+        /// Значения графиков
+        /// </summary>
+        private Func<double, string> yFormatter;
+        public Func<double, string> YFormatter
+        {
+            get { return yFormatter; }
+            set
+            {
+                yFormatter = value;
+                OnPropertyChanged("YFormatter");
+            }
+        }
 
         public DrPerfmonContext db { get; set; }
 
         DispatcherTimer Timer = new DispatcherTimer();
         public Dispatcher _dispatcher;
 
+        /// <summary>
+        /// Запустить таймер
+        /// </summary>
         public ActionCommand TimerStart { get; set; }
+
+        /// <summary>
+        /// Остановить таймер
+        /// </summary>
         public ActionCommand TimerStop { get; set; }
 
         private ObservableCollection<ParameterPerformance> parameterPerformanceList { get; set; }
+        /// <summary>
+        /// Список значений счетчиков производительности (Лог)
+        /// </summary>
         public ObservableCollection<ParameterPerformance> ParameterPerformanceList
         {
             get
@@ -59,57 +98,47 @@ namespace DrPerfmon.ViewModel
             set { }
         }
 
-        public ObservableCollection<PerformanceCounter> performanceCounters = new ObservableCollection<PerformanceCounter>(); //Счетчики производительности
-        public ObservableCollection<ChartValuesModel> chartValuesModels = new ObservableCollection<ChartValuesModel>(); //Значения графиков производительности
+        /// <summary>
+        /// Счетчики производительности
+        /// </summary>
+        public ObservableCollection<PerformanceCounter> performanceCounters = new ObservableCollection<PerformanceCounter>();
+
+        /// <summary>
+        /// Значения графиков производительности
+        /// </summary>
+        //public ObservableCollection<ChartValuesModel> chartValuesModels = new ObservableCollection<ChartValuesModel>();
 
         public MainWindowVM()
         {
-            MessageBox.Show("qq");
             db = new DrPerfmonContext();
             _dispatcher = Dispatcher.CurrentDispatcher;
             TimerStart = new ActionCommand(TimerStartCommand) { IsExecutable = true };
             TimerStop = new ActionCommand(TimerStopCommand) { IsExecutable = true };
 
             Timer.Tick += Timer_Tick; // don't freeze the ui
-            Timer.Interval = new TimeSpan(0, 0, 0, 1, 0);
+            Timer.Interval = new TimeSpan(0, 0, 0, 2, 0);
             Timer.IsEnabled = false;
 
-            //SeriesCollection = new SeriesCollection();
+            SeriesCollection = new SeriesCollection();
             foreach (var param in db.PerformanceCounterModels)
             {
                 performanceCounters.Add(new PerformanceCounter(param.CategoryName, param.CounterName, param.InstanceName, param.MachineName));
-                //SeriesCollection.Add(new LineSeries() { Title = param.CounterName });
+                SeriesCollection.Add(new LineSeries() { Title = param.CounterNameRus, Values = new ChartValues<double>() });
             }
-
-            //SeriesCollection = new SeriesCollection
-            //{
-            //    new LineSeries
-            //    {
-            //        Title = "Средняя длина очереди диска",
-            //        Values = new ChartValues<double> { 4, 6, 5, 2 ,4 }
-            //    }
-            //};
 
             //Прописываем лейблы 1 лейбл под 1 значение
             Labels = new string[Duration];
-            int CounterLabel = 0;
-            for (int i = 0; i < Duration; i += SampleEvery/1000)
-            {
-                Labels[CounterLabel] = i.ToString();
-                CounterLabel++;
-            }
         }
 
         int CounterCurrent = 0;
+        int CounterLabel = 0;
         public void Timer_Tick(System.Object sender, System.EventArgs e)
         {
             DisplayHandler handler = new DisplayHandler(Display);
             IAsyncResult resultObj = handler.BeginInvoke(null, null);
 
-            Thread.Sleep(SampleEvery);
-
-            CounterCurrent += SampleEvery;
-
+            CounterCurrent += 2;
+            CounterLabel++;
             if (Duration <= CounterCurrent)
             {
                 Timer.Stop();
@@ -119,38 +148,34 @@ namespace DrPerfmon.ViewModel
 
         private void Display()
         {
-
             _dispatcher.BeginInvoke(new Action(() =>
                 {
-                    SeriesCollection = new SeriesCollection();
                     foreach (var param in performanceCounters)
                     {
                         double paramValue = param.NextValue();
-                        chartValuesModels.Add(new ChartValuesModel() { CategoryName = param.CategoryName, ChartValue = paramValue });
+                        string categoryNameRus = (from b in db.PerformanceCounterModels
+                                                  where b.CategoryName == param.CategoryName
+                                                  select b.CategoryNameRus).Distinct().Single();
+                        string counterNameRus = (from b in db.PerformanceCounterModels
+                                                 where b.CounterName == param.CounterName
+                                                 select b.CounterNameRus).Distinct().Single();
 
                         ParameterPerformanceList.Add(new ParameterPerformance()
                         {
                             ValueCounter = paramValue,
-                            CategoryName = param.CategoryName,
-                            CounterName = param.CounterName,
+                            CategoryNameRus = categoryNameRus,
+                            CounterNameRus = counterNameRus,
                             MachineName = param.MachineName,
                             TimeAdd = DateTime.Now
                         });
 
-                        seriesCollection.Add(new LineSeries() { Title = param.CategoryName, Values = new ChartValues<double>(GetChartValues(param.CategoryName)) });
+                        foreach (var a in SeriesCollection.Where(a => a.Title == counterNameRus))
+                        {
+                            a.Values.Add(paramValue);
+                            Labels[CounterLabel] = DateTime.Now.ToString("HH:mm:ss");
+                        }
                     }
-
                 }));
-        }
-
-        private ChartValues<double> GetChartValues(string CategoryName)
-        {
-            ChartValues<double> chartValues = new ChartValues<double>();
-            foreach (var val in chartValuesModels.Where(val => val.CategoryName == CategoryName))
-            {
-                chartValues.Add(val.ChartValue);
-            }
-            return chartValues;
         }
 
         private void TimerStartCommand()

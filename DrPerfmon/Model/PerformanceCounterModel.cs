@@ -16,5 +16,7 @@ namespace DrPerfmon.Model
         public string CounterName { get; set; }
         public string InstanceName { get; set; }
         public string MachineName { get; set; }
+        public string CategoryNameRus { get; set; }
+        public string CounterNameRus { get; set; }
     }
 }

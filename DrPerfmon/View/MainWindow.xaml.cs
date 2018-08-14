@@ -27,5 +27,15 @@ namespace DrPerfmon
             InitializeComponent();
             DataContext = _model;
         }
+
+        private void grid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (grid.SelectedItem != null)
+            {
+                grid.SelectedIndex = grid.Items.Count;
+                grid.UpdateLayout();
+                grid.ScrollIntoView(grid.SelectedItem);
+            }
+        }
     }
 }
