@@ -7,7 +7,7 @@
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         xmlns:bsFilter="http://schemas.bolapansoft.com/xaml/Controls/ItemsFilter"
         mc:Ignorable="d"
-        Title="DrPerfmon" Height="558" Width="915.5">
+        Title="DrPerfmon" Height="558" Width="915.5" WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="35*"/>
@@ -41,6 +41,8 @@
                         <Image Width="34" Height="34" Source="/DrPerfmon;component/Resources/Images/tools.png" />
                     </StackPanel>
                 </MenuItem.Header>
+                <MenuItem Command="{Binding DirectoryPerformanceCountersOpen}" Cursor="Hand" Header="Счетчики производительности"/>
+                <MenuItem Command="{Binding SettingsDrPermon}" Cursor="Hand" Header="Настройка сбора информации"/>
             </MenuItem>
             <MenuItem Cursor="Hand" Background="{x:Null}" Command="" Width="47">
                 <MenuItem.Header>
@@ -92,7 +94,11 @@
             </TabItem>
             <TabItem Header="Лог">
                 <Grid Background="#FFE5E5E5">
-                    <bsFilter:FilterDataGrid Name="grid" SelectedCellsChanged="grid_SelectedCellsChanged" IsReadOnly="True" AlternatingRowBackground="#FFDAECFF" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="True" ItemsSource="{Binding ParameterPerformanceList, IsAsync=True}" BorderBrush="{x:Null}" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <bsFilter:FilterDataGrid Name="dtgrid" IsReadOnly="True" AlternatingRowBackground="#FFDAECFF" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="True" ItemsSource="{Binding ParameterPerformanceList, IsAsync=True}" BorderBrush="{x:Null}" Grid.Row="1" >
                         <DataGrid.Resources>
                             <Style TargetType="{x:Type DataGridCell}">
                                 <Style.Triggers>
@@ -120,6 +126,7 @@
                             <DataGridTextColumn Header="Добавлено" Binding="{Binding TimeAdd, StringFormat=dd.MM.yy HH:mm:ss}" />
                         </DataGrid.Columns>
                     </bsFilter:FilterDataGrid>
+                    <CheckBox IsChecked="{Binding ScrollDown, UpdateSourceTrigger=PropertyChanged}" Content="Прокручивать вниз" HorizontalAlignment="Left" Margin="10,9,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Статистика">

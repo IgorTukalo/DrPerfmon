@@ -1,0 +1,72 @@
+﻿<Window x:Class="DrPerfmon.View.DirectoryPerformanceCounters"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:bsFilter="http://schemas.bolapansoft.com/xaml/Controls/ItemsFilter"
+        xmlns:local="clr-namespace:DrPerfmon.View"
+        mc:Ignorable="d"
+Title="Справочник счетчиков производительности" Height="491.597" Width="1065.966" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <bsFilter:FilterDataGrid SelectedItem="{Binding SelectedCounter,UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding PerformanceCounterModelList, IsAsync=True}" IsReadOnly="True" AlternatingRowBackground="#FFDAECFF" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="True" BorderBrush="{x:Null}" Grid.Row="1" >
+            <bsFilter:FilterDataGrid.Resources>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#FFB9FFB9" />
+                            <Setter Property="Foreground" Value="Black" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </bsFilter:FilterDataGrid.Resources>
+            <bsFilter:FilterDataGrid.Style>
+                <Style TargetType="{x:Type DataGrid}">
+                    <Style.Triggers>
+                        <Trigger Property="ItemsSource" Value="{x:Null}">
+                            <Setter Property="Template" Value="{StaticResource WaitControlTemplate}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </bsFilter:FilterDataGrid.Style>
+            <bsFilter:FilterDataGrid.Columns>
+                <DataGridTextColumn Header="Название категории (англ)" Binding="{Binding CategoryName}" />
+                <DataGridTextColumn Header="Название счетчика (англ)" Binding="{Binding CounterName}"/>
+                <DataGridTextColumn Header="Название категории (рус)" Binding="{Binding CategoryNameRus}" />
+                <DataGridTextColumn Header="Название счетчика (рус)" Binding="{Binding CounterNameRus}"/>
+                <DataGridTextColumn Header="Имя экземпляра" Binding="{Binding InstanceName}"/>
+                <DataGridTextColumn Header="Сервер" Binding="{Binding MachineName}"/>
+                <DataGridTextColumn Header="Добавлено" Binding="{Binding TimeAddCounter, StringFormat=dd.MM.yy HH:mm:ss}" />
+                <DataGridTextColumn Header="Изменено" Binding="{Binding TimeEditCounter, StringFormat=dd.MM.yy HH:mm:ss}" />
+            </bsFilter:FilterDataGrid.Columns>
+        </bsFilter:FilterDataGrid>
+        <Menu Cursor="Hand"  Background="{x:Null}" VerticalAlignment="Top" HorizontalAlignment="Left" Height="36" Width="235">
+            <MenuItem Command="{Binding AddCounterPerfmon}" Cursor="Hand" Background="{x:Null}" Width="47">
+                <MenuItem.Header>
+                    <StackPanel>
+                        <Image Width="34" Height="34" Source="/DrPerfmon;component/Resources/Images/add.png" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+            <MenuItem Command="{Binding EditCounterPerfmon}" Cursor="Hand" Background="{x:Null}" Width="47">
+                <MenuItem.Header>
+                    <StackPanel>
+                        <Image Width="34" Height="34" Source="/DrPerfmon;component/Resources/Images/edit.png" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+            <MenuItem Command="{Binding DeleteCounterPerfmon}" Cursor="Hand" Background="{x:Null}" Width="47">
+                <MenuItem.Header>
+                    <StackPanel>
+                        <Image Width="34" Height="34" Source="/DrPerfmon;component/Resources/Images/delete.png" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+        </Menu>
+
+    </Grid>
+</Window>

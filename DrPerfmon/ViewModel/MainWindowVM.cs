@@ -1,4 +1,5 @@
 ﻿using DrPerfmon.Model;
+using DrPerfmon.View;
 using LiveCharts;
 using LiveCharts.Wpf;
 using System;
@@ -8,10 +9,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace DrPerfmon.ViewModel
@@ -44,6 +44,20 @@ namespace DrPerfmon.ViewModel
             {
                 seriesCollection = value;
                 OnPropertyChanged("SeriesCollection");
+            }
+        }
+
+        private bool scrollDown;
+        /// <summary>
+        /// Прокрутка лога вниз
+        /// </summary>
+        public Boolean ScrollDown
+        {
+            get { return scrollDown; }
+            set
+            {
+                scrollDown = value;
+                OnPropertyChanged("ScrollDown");
             }
         }
 
@@ -81,6 +95,11 @@ namespace DrPerfmon.ViewModel
         /// </summary>
         public ActionCommand TimerStop { get; set; }
 
+        /// <summary>
+        /// Открыть справочник счетчиков производительности
+        /// </summary>
+        public ActionCommand DirectoryPerformanceCountersOpen { get; set; }
+
         private ObservableCollection<ParameterPerformance> parameterPerformanceList { get; set; }
         /// <summary>
         /// Список значений счетчиков производительности (Лог)
@@ -111,23 +130,16 @@ namespace DrPerfmon.ViewModel
         public MainWindowVM()
         {
             db = new DrPerfmonContext();
+            ScrollDown = false;
             _dispatcher = Dispatcher.CurrentDispatcher;
+
             TimerStart = new ActionCommand(TimerStartCommand) { IsExecutable = true };
             TimerStop = new ActionCommand(TimerStopCommand) { IsExecutable = true };
+            DirectoryPerformanceCountersOpen = new ActionCommand(DirectoryPerformanceCountersOpenCommand) { IsExecutable = true };
 
             Timer.Tick += Timer_Tick; // don't freeze the ui
             Timer.Interval = new TimeSpan(0, 0, 0, 2, 0);
             Timer.IsEnabled = false;
-
-            SeriesCollection = new SeriesCollection();
-            foreach (var param in db.PerformanceCounterModels)
-            {
-                performanceCounters.Add(new PerformanceCounter(param.CategoryName, param.CounterName, param.InstanceName, param.MachineName));
-                SeriesCollection.Add(new LineSeries() { Title = param.CounterNameRus, Values = new ChartValues<double>() });
-            }
-
-            //Прописываем лейблы 1 лейбл под 1 значение
-            Labels = new string[Duration];
         }
 
         int CounterCurrent = 0;
@@ -149,37 +161,62 @@ namespace DrPerfmon.ViewModel
         private void Display()
         {
             _dispatcher.BeginInvoke(new Action(() =>
+            {
+                foreach (var param in performanceCounters)
                 {
-                    foreach (var param in performanceCounters)
+                    double paramValue = param.NextValue();
+                    string categoryNameRus = (from b in db.PerformanceCounterModels
+                                              where b.CategoryName == param.CategoryName
+                                              select b.CategoryNameRus).Distinct().Single();
+                    string counterNameRus = (from b in db.PerformanceCounterModels
+                                             where b.CounterName == param.CounterName
+                                             select b.CounterNameRus).Distinct().Single();
+
+                    ParameterPerformanceList.Add(new ParameterPerformance()
                     {
-                        double paramValue = param.NextValue();
-                        string categoryNameRus = (from b in db.PerformanceCounterModels
-                                                  where b.CategoryName == param.CategoryName
-                                                  select b.CategoryNameRus).Distinct().Single();
-                        string counterNameRus = (from b in db.PerformanceCounterModels
-                                                 where b.CounterName == param.CounterName
-                                                 select b.CounterNameRus).Distinct().Single();
+                        ValueCounter = paramValue,
+                        CategoryNameRus = categoryNameRus,
+                        CounterNameRus = counterNameRus,
+                        MachineName = param.MachineName,
+                        TimeAdd = DateTime.Now
+                    });
 
-                        ParameterPerformanceList.Add(new ParameterPerformance()
-                        {
-                            ValueCounter = paramValue,
-                            CategoryNameRus = categoryNameRus,
-                            CounterNameRus = counterNameRus,
-                            MachineName = param.MachineName,
-                            TimeAdd = DateTime.Now
-                        });
-
-                        foreach (var a in SeriesCollection.Where(a => a.Title == counterNameRus))
-                        {
-                            a.Values.Add(paramValue);
-                            Labels[CounterLabel] = DateTime.Now.ToString("HH:mm:ss");
-                        }
+                    foreach (var a in SeriesCollection.Where(a => a.Title == counterNameRus))
+                    {
+                        a.Values.Add(paramValue);
+                        Labels[CounterLabel] = DateTime.Now.ToString("HH:mm:ss");
                     }
-                }));
+                }
+            }));
+        }
+
+        public void dtgrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (ScrollDown == true)
+                if ((sender as DataGrid).SelectedItem != null)
+                {
+                    (sender as DataGrid).SelectedIndex = (sender as DataGrid).Items.Count;
+                    (sender as DataGrid).UpdateLayout();
+                    (sender as DataGrid).ScrollIntoView((sender as DataGrid).SelectedItem);
+                }
         }
 
         private void TimerStartCommand()
         {
+            SeriesCollection = new SeriesCollection();
+            foreach (var param in db.PerformanceCounterModels)
+            {
+                try
+                {
+                    performanceCounters.Add(new PerformanceCounter(param.CategoryName, param.CounterName, param.InstanceName, param.MachineName));
+                }
+                catch (Exception ex) { MessageBox.Show(ex.Message +string.Format("\n{0}, {1}, {2}, {3}\nПроверьте корректность данных в справочнике счетчиков производительности!", param.CategoryName, param.CounterName, param.InstanceName, param.MachineName), " ", MessageBoxButton.OK, MessageBoxImage.Error); }
+                SeriesCollection.Add(new LineSeries() { Title = param.CounterNameRus, Values = new ChartValues<double>() });
+            }
+
+            //Прописываем лейблы 1 лейбл под 1 значение
+            Labels = new string[Duration];
+
             Timer.Start();
         }
 
@@ -188,8 +225,14 @@ namespace DrPerfmon.ViewModel
             Timer.Stop();
         }
 
+        private void DirectoryPerformanceCountersOpenCommand()
+        {
+            DirectoryPerformanceCounters directoryPerformanceCounters = new DirectoryPerformanceCounters();
+            directoryPerformanceCounters.ShowDialog();
+        }
+
         /// <summary>
-        /// Заполнить список сварочных автоматов, установить true false для отметки строк
+        /// Заполнить список счетчиков производительности (Лог)
         /// </summary>
         /// <returns></returns>
         private ObservableCollection<ParameterPerformance> FillParameterPerformanceList()

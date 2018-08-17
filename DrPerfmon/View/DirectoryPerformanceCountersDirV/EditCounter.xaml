@@ -1,0 +1,44 @@
+﻿<Window x:Class="DrPerfmon.View.DirectoryPerformanceCountersDirV.EditCounter"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DrPerfmon.View.DirectoryPerformanceCountersDirV"
+        mc:Ignorable="d" Name="windowEdit"
+        Title="Изменить счетчик производительности" Height="242.017" Width="492.437" WindowStartupLocation="CenterScreen" Background="#FFF9F9E7">
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Text="Название категории (англ)" HorizontalAlignment="Center"/>
+                    <TextBox Margin="10" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="{Binding CategoryName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+                </StackPanel>
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Text="Название счетчика (англ)" HorizontalAlignment="Center"/>
+                    <TextBox Margin="10" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="{Binding CounterName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+                </StackPanel>
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Text="Имя экземпляра" HorizontalAlignment="Center"/>
+                    <TextBox Margin="10" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="{Binding InstanceName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Text="Название категории (рус)" HorizontalAlignment="Center"/>
+                    <TextBox Margin="10" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="{Binding CategoryNameRus, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+                </StackPanel>
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Text="Название счетчика (рус)" HorizontalAlignment="Center"/>
+                    <TextBox Margin="10" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="{Binding CounterNameRus, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+                </StackPanel>
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Text="Сервер" HorizontalAlignment="Center"/>
+                    <TextBox Margin="10" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="{Binding MachineName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel>
+                <Button Command="{Binding EditCommand}" CommandParameter="{Binding ElementName=windowEdit}" Height="30" HorizontalAlignment="Center" Content="Изменить" Width="200" Background="#FFF1F1AC" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

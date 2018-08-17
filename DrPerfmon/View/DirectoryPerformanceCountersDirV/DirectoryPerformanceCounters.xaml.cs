@@ -11,22 +11,20 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace DrPerfmon
+namespace DrPerfmon.View
 {
     /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
+    /// Логика взаимодействия для DirectoryPerformanceCounters.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class DirectoryPerformanceCounters : Window
     {
-        MainWindowVM _model = new MainWindowVM();
-        public MainWindow()
+        DirectoryPerformanceCountersVM _model = new DirectoryPerformanceCountersVM();
+        public DirectoryPerformanceCounters()
         {
             InitializeComponent();
             DataContext = _model;
-            dtgrid.SelectedCellsChanged += _model.dtgrid_SelectedCellsChanged;
         }
     }
 }

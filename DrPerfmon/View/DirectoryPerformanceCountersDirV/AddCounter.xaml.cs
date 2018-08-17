@@ -1,4 +1,4 @@
-﻿using DrPerfmon.ViewModel;
+﻿using DrPerfmon.ViewModel.DirectoryPerformanceCountersDirVM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,22 +11,20 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace DrPerfmon
+namespace DrPerfmon.View.DirectoryPerformanceCountersDirV
 {
     /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
+    /// Логика взаимодействия для AddCounter.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class AddCounter : Window
     {
-        MainWindowVM _model = new MainWindowVM();
-        public MainWindow()
+        AddCounterVM _model = new AddCounterVM();
+        public AddCounter()
         {
             InitializeComponent();
             DataContext = _model;
-            dtgrid.SelectedCellsChanged += _model.dtgrid_SelectedCellsChanged;
         }
     }
 }
